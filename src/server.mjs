@@ -1,5 +1,5 @@
 import { SITE } from './config.mjs';
-import { homePage, infoPage } from './html.mjs';
+import { homePage, infoPage, notFoundPage } from './html.mjs';
 import { puzzleFor as lookup } from './puzzles.mjs';
 import { runRetier } from './retier.mjs';
 import { TIER_SCORES, matchAnswer, etDate, resetAt, ROUND_MS, PREVIEW_MS, parseShareCode, bandFor } from '../public/rules.mjs';
@@ -177,6 +177,6 @@ export async function handle(request, env) {
       if (['/privacy','/about'].includes(url.pathname)) return headers(new Response(request.method==='HEAD'?null:infoPage(url.pathname,env),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=300'}}));
       if (url.pathname === '/robots.txt') return headers(new Response(`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${(env.SITE_URL||SITE.origin)}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain; charset=utf-8'}}));
       if (url.pathname === '/sitemap.xml') return headers(new Response('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+['/','/about','/privacy'].map(p=>`<url><loc>${env.SITE_URL||SITE.origin}${p}</loc></url>`).join('')+'</urlset>',{headers:{'Content-Type':'application/xml; charset=utf-8'}}));
-      return headers(fail('Not found.',404));
+      return headers(new Response(request.method==='HEAD'?null:notFoundPage(env),{status:404,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=300'}}));
     } catch (e) { console.error('Request failed:',e.message); return headers(fail('The signal is temporarily lost. Please retry.',503)); }
 }

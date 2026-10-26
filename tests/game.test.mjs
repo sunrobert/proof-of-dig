@@ -188,3 +188,13 @@ test('cookieless Vercel Web Analytics loads in production only',()=>{
   assert.doesNotMatch(homePage({LOCAL_DEVELOPMENT:'true'}),/_vercel\/insights/);
   assert.match(infoPage('/privacy',{}),/Vercel Web Analytics, which sets no cookies/);
 });
+
+test('unknown pages get a friendly HTML 404, API misses stay JSON',async()=>{
+  const s=await service();
+  const page=await handle(new Request('http://localhost:3051/nope'),s.env);
+  assert.equal(page.status,404);assert.match(page.headers.get('Content-Type'),/text\/html/);
+  const html=await page.text();assert.match(html,/Nothing down here/);assert.match(html,/href="\/"/);assert.match(html,/noindex/);
+  const api=await handle(new Request('http://localhost:3051/api/nope'),s.env);
+  assert.equal(api.status,404);assert.match(api.headers.get('Content-Type'),/json/);
+  s.env.DB.close();
+});
